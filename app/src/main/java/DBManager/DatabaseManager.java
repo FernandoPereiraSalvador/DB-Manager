@@ -175,7 +175,7 @@ class DatabaseManager {
 
     public void startShell() {
 
-        // TO-DO: Inicia la shell del mode base de dades
+        startShell();
     }
 
     public String getServer() {
