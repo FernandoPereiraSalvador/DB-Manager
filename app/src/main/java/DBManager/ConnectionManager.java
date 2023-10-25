@@ -45,17 +45,51 @@ class ConnectionManager {
     }
 
     public void showInfo() {
+        // TO-DO: show server info
         Connection conn = connectDBMS();
 
-        if (conn != null) {
-
-        }catch(Exception e){
+        if(conn != null){
+            
+            try{
+                DatabaseMetaData metaData = conn.getMetaData();
                 
-                }
+                System.out.println("Database product name: " +metaData.getDatabaseProductName());
+                System.out.println("Database product version: " + metaData.getDatabaseProductVersion());
+                System.out.println("Driver name: " +metaData.getDriverName());
+                System.out.println("Driver version: " + metaData.getDriverVersion());
+            }catch(SQLException e){
+                
+            }
+          
+            
+            
+        }else{
+            System.out.println("Error");
+        }
     }
 
     public void showDatabases() {
         // TO-DO: Show databases in your server
+        Connection conn = connectDBMS();
+
+        if(conn != null){
+            
+            try{
+                DatabaseMetaData metaData = conn.getMetaData();
+                ResultSet bases_datos = metaData.getCatalogs();
+                
+                while(bases_datos.next()){
+                    System.out.println(bases_datos.getString("TABLE_CAT"));
+                }
+            }catch(SQLException e){
+                
+            }
+          
+            
+            
+        }else{
+            System.out.println("Error");
+        }
     }
 
     public void startShell() {
