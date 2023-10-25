@@ -1,5 +1,8 @@
 package DBManager;
 
+import static DBManager.Utilidades.leerEnteroC;
+import static DBManager.Utilidades.leerRealC;
+import static DBManager.Utilidades.leerTextoC;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -65,7 +68,9 @@ class DatabaseManager {
 
             ResultSet tables = metaData.getTables("Jocs", null, null, null);
 
-            System.out.println(String.format("%-15s %-15s %-15s", tables.getString(1), tables.getString(3), tables.getString(4)));
+            while (tables.next()) {
+                System.out.println(String.format("%-15s %-15s %-15s", tables.getString(1), tables.getString(3), tables.getString(4)));
+            }
 
         } catch (Exception e) {
             System.out.println("Error al obtener las tablas");
@@ -80,6 +85,48 @@ class DatabaseManager {
         // 1. Connect to the DB (if not)
         Connection conn = connectDatabase();
         // 2. Get columns and data types of each column
+
+        // 4. Compose insert query
+        StringBuilder query = new StringBuilder("INSERT INTO " + table + " (");
+        StringBuilder values = new StringBuilder("VALUES (");
+
+        try {
+            DatabaseMetaData metaData = conn.getMetaData();
+            ResultSet columns = metaData.getColumns(table, null, null, null);
+
+            while (columns.next()) {
+                String columnName = columns.getString("COLUMN_NAME");
+                String dataType = columns.getString("TYPE_NAME");
+
+                if ("int".equalsIgnoreCase(dataType)) {
+                    int valor = leerEnteroC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
+                    query.append(columnName).append(", ");
+                    values.append(valor).append(", ");
+                } else if ("double".equalsIgnoreCase(dataType)) {
+                    double valor = leerRealC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
+                    query.append(columnName).append(", ");
+                    values.append(valor).append(", ");
+                } else if ("String".equalsIgnoreCase(dataType)) {
+                    String valor = leerTextoC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
+                    query.append(columnName).append(", ");
+                    values.append(valor).append(", ");
+                }
+
+                // Eliminar la coma y el espacio final de las cadenas query y values
+                query.setLength(query.length() - 2);
+                values.setLength(values.length() - 2);
+                
+                // Hacer la consulta
+                query.append(") ").append(values).append(");");
+                
+                // Insertar
+                Statement st = conn.createStatement();
+                int affectedRows = st.executeUpdate(query.toString());
+                System.out.println(affectedRows + " filas han sido insertadas");
+            }
+        } catch (Exception e) {
+
+        }
         // 3. Ask the user for values
         // 4. Compose insert query 
         // Notice that
