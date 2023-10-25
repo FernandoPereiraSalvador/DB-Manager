@@ -121,11 +121,10 @@ class DatabaseManager {
                 
                 // Insertar
                 Statement st = conn.createStatement();
-                int affectedRows = st.executeUpdate(query.toString());
-                System.out.println(affectedRows + " filas han sido insertadas");
+                System.out.println(st.executeUpdate(query.toString()) + " filas han sido insertadas");
             }
         } catch (Exception e) {
-
+            System.out.println("Error");
         }
         // 3. Ask the user for values
         // 4. Compose insert query 
@@ -142,9 +141,34 @@ class DatabaseManager {
 
         try {
             DatabaseMetaData metaData = conn.getMetaData();
-
+            
+            ResultSet tableInfo = metaData.getTables(null, null, table, null);
+            
+            
+            while(tableInfo.next()){
+                System.out.println(tableInfo.getString("TABLE_NAME"));
+                System.out.println(tableInfo.getString("TABLE_TYPE"));
+            }
+            
+            ResultSet primaryKeysInfo = metaData.getPrimaryKeys(null, null, table);
+            
+            while(primaryKeysInfo.next()){
+                System.out.println(primaryKeysInfo.getString("COLUMN_NAME"));
+                System.out.println(primaryKeysInfo.getString("PK_NAME"));
+            }
+            
+            ResultSet foreignKeysInfo = metaData.getImportedKeys(null, null, table);
+            
+            while(foreignKeysInfo.next()){
+            
+                System.out.println(foreignKeysInfo.getString("FKTABLE_NAME"));
+                System.out.println(foreignKeysInfo.getString("FKCOLUMN_NAME"));
+                System.out.println(foreignKeysInfo.getString("PKTABLE_NAME"));
+                System.out.println(foreignKeysInfo.getString("PKCOLUMN_NAME"));
+            }
+            
         } catch (Exception e) {
-
+            System.out.println("Error");
         }
 
     }
