@@ -2,6 +2,8 @@ package DBManager;
 
 import java.sql.*;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class ConnectionManager {
 
@@ -34,10 +36,13 @@ class ConnectionManager {
 
         try {
             String url_connection = "jdbc:mysql://" + server + ":" + port;
-            connection = DriverManager.getConnection(url_connection, user, pass);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(url_connection,user,pass);
             System.out.println("Conexion establecida con exito.");
         } catch (SQLException e) {
             System.err.println("Error durante la conexion: " + e.getMessage());
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ConnectionManager.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return connection;
@@ -125,13 +130,15 @@ class ConnectionManager {
                         // TO-DO:
                         // Creem un objecte de tipus databaseManager per connectar-nos a
                         // la base de dades i iniciar una shell de manipulació de BD..
+                            
+                            DatabaseManager dbManager = new DatabaseManager();
+                            dbManager.connectDatabase();
+                            dbManager.startShell();
 
                         default:
                             System.out.println(ConsoleColors.RED + "Unknown option" + ConsoleColors.RESET);
                             break;
-
                     }
-
             }
 
         } while (!command.equals("quit"));
