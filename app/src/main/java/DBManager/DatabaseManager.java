@@ -80,20 +80,23 @@ class DatabaseManager {
     }
 
     public void insertIntoTable(String table) {
-        // TO-DO: add a new record
+        // TO-DO: agregar un nuevo registro
 
-        // Steps
-        // 1. Connect to the DB (if not)
+        // Pasos
+        // 1. Conectarse a la base de datos (si no está conectada)
         Connection conn = connectDatabase();
-        // 2. Get columns and data types of each column
+        // 2. Obtener las columnas y tipos de datos de cada columna
 
-        // 4. Compose insert query
+        // 4. Componer la consulta de inserción
         StringBuilder query = new StringBuilder("INSERT INTO " + table + " (");
         StringBuilder values = new StringBuilder("VALUES (");
 
         try {
             DatabaseMetaData metaData = conn.getMetaData();
-            ResultSet columns = metaData.getColumns(table, null, null, null);
+            ResultSet columns = metaData.getColumns(getDbname(), null, table, null);
+
+            // Variables para controlar si se han agregado columnas y valores
+            boolean hasColumns = false;
 
             while (columns.next()) {
                 String columnName = columns.getString("COLUMN_NAME");
@@ -101,48 +104,65 @@ class DatabaseManager {
 
                 if ("int".equalsIgnoreCase(dataType)) {
                     int valor = leerEnteroC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
-                    query.append(columnName).append(", ");
-                    values.append(valor).append(", ");
+                    if (hasColumns) {
+                        query.append(", ");
+                        values.append(", ");
+                    }
+                    query.append(columnName);
+                    values.append(valor);
+                    hasColumns = true;
                 } else if ("double".equalsIgnoreCase(dataType)) {
                     double valor = leerRealC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
-                    query.append(columnName).append(", ");
-                    values.append(valor).append(", ");
-                } else if ("String".equalsIgnoreCase(dataType)) {
+                    if (hasColumns) {
+                        query.append(", ");
+                        values.append(", ");
+                    }
+                    query.append(columnName);
+                    values.append(valor);
+                    hasColumns = true;
+                } else if ("String".equalsIgnoreCase(dataType) || "varchar".equalsIgnoreCase(dataType)) {
                     String valor = leerTextoC("Introduzca el valor para " + columnName + " ( " + dataType + " ):");
-                    query.append(columnName).append(", ");
-                    values.append(valor).append(", ");
+                    if (hasColumns) {
+                        query.append(", ");
+                        values.append(", ");
+                    }
+                    query.append(columnName);
+                    values.append("'" + valor + "'");
+                    hasColumns = true;
                 }
+            }
 
-                // Eliminar la coma y el espacio final de las cadenas query y values
-                query.setLength(query.length() - 2);
-                values.setLength(values.length() - 2);
+            if (hasColumns) {
+                System.out.println(query);
+                query.append(")").append(values).append(");");
 
-                // Hacer la consulta
-                query.append(") ").append(values).append(");");
+                System.out.println(query);
 
                 // Insertar
                 Statement st = conn.createStatement();
                 System.out.println(st.executeUpdate(query.toString()) + " filas han sido insertadas");
+            } else {
+                System.out.println("No se han encontrado columnas para insertar.");
             }
         } catch (Exception e) {
-            System.out.println("Error");
+            System.out.println("Error: " + e);
         }
-        // 3. Ask the user for values
-        // 4. Compose insert query 
-        // Notice that
-        // - Data types of each type
-        // - Notice about default values
-        // - manage errors
-        // - Show generated id (if exists)
+        // 3. Solicitar valores al usuario
+        // 4. Componer la consulta de inserción 
+        // Ten en cuenta
+        // - Tipos de datos de cada columna
+        // - Valores predeterminados
+        // - manejar errores
+        // - Mostrar el ID generado (si existe)
     }
 
     public void showDescTable(String table) {
-        
+
         System.out.println("Descripcion de la tabla: " + table);
-        
+
         // TO-DO: Show info about tables, keys and foreign keys
         Connection conn = connectDatabase();
-        
+
         try {
             DatabaseMetaData metaData = conn.getMetaData();
 
@@ -185,31 +205,27 @@ class DatabaseManager {
 
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# (" + this.user + ") on " + this.server + ":" + this.port + "> " + ConsoleColors.RESET);
             command = keyboard.nextLine();
-            
-            if (command.startsWith("desc table") || (command.startsWith("description table"))){
+
+            if (command.startsWith("desc table") || (command.startsWith("description table"))) {
                 String[] subcommand = command.split(" ");
-                    if (subcommand.length < 2) {
-                        System.out.println(ConsoleColors.RED + "Error: desc table <table_name>" + ConsoleColors.RESET);
-                    } else {
-                        String tableName = subcommand[2]; 
-                        this.showDescTable(tableName);
-                    }
-            }
-
-            switch (command) {
-
-                case "sh tables":
-                case "show tables":
-                    this.showTables();
-                    break;
-
-                case "insert table":
-                    this.insertIntoTable("");
-                    break;
-
-                case "quit":
-                    break;
-
+                if (subcommand.length < 2) {
+                    System.out.println(ConsoleColors.RED + "Error: desc table <table_name>" + ConsoleColors.RESET);
+                } else {
+                    String tableName = subcommand[2];
+                    this.showDescTable(tableName);
+                }
+            } else if (command.startsWith("insert table") || (command.startsWith("ins table"))) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 2) {
+                    System.out.println(ConsoleColors.RED + "Error: desc table <table_name>" + ConsoleColors.RESET);
+                } else {
+                    String tableName = subcommand[2];
+                    this.insertIntoTable(tableName);
+                }
+            } else if ("show tables".equals(command) || "sh tables".equals(command)) {
+                this.showTables();
+            } else {
+                System.out.println("Comando incorrecto");
             }
 
         } while (!command.equals("quit"));
