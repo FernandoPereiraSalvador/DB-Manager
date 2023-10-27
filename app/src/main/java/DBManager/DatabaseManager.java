@@ -46,9 +46,10 @@ class DatabaseManager {
         connectionUrl += "&password=" + getPass();
 
         try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(connectionUrl, getUser(), getPass());
         } catch (Exception e) {
-
+            System.out.println("Error al abrir la base de datos: " + e);
         }
 
         return conn;
@@ -56,9 +57,9 @@ class DatabaseManager {
 
     public void showTables() {
         Connection conn = connectDatabase();
-
+                
         if (conn == null) {
-            System.out.println("Error al abrir la base de datos");
+            System.out.println("Error en la conexion");
             return;
         }
 
@@ -66,14 +67,14 @@ class DatabaseManager {
 
             DatabaseMetaData metaData = conn.getMetaData();
 
-            ResultSet tables = metaData.getTables("Jocs", null, null, null);
+            ResultSet tables = metaData.getTables(getDbname(), null, null, null);
 
             while (tables.next()) {
                 System.out.println(String.format("%-15s %-15s %-15s", tables.getString(1), tables.getString(3), tables.getString(4)));
             }
 
         } catch (Exception e) {
-            System.out.println("Error al obtener las tablas");
+            System.out.println("Error al obtener las tablas: " + e);
         }
 
     }
@@ -175,7 +176,35 @@ class DatabaseManager {
 
     public void startShell() {
 
-        startShell();
+        Scanner keyboard = new Scanner(System.in);
+        String command;
+
+        do {
+
+            System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# (" + this.user + ") on " + this.server + ":" + this.port + "> " + ConsoleColors.RESET);
+            command = keyboard.nextLine();
+
+            switch (command) {
+                case "desc table":
+                case "description table":
+                    this.showDescTable("prueba");
+                    break;
+
+                case "sh tables":
+                case "show tables":
+                    this.showTables();
+                    break;
+                
+                case "insert table":
+                    this.insertIntoTable("");
+                    break;
+                
+                case "quit":
+                    break;
+
+            }
+
+        } while (!command.equals("quit"));
     }
 
     public String getServer() {
