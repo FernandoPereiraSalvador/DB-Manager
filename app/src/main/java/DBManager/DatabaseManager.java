@@ -57,7 +57,7 @@ class DatabaseManager {
 
     public void showTables() {
         Connection conn = connectDatabase();
-                
+
         if (conn == null) {
             System.out.println("Error en la conexion");
             return;
@@ -116,10 +116,10 @@ class DatabaseManager {
                 // Eliminar la coma y el espacio final de las cadenas query y values
                 query.setLength(query.length() - 2);
                 values.setLength(values.length() - 2);
-                
+
                 // Hacer la consulta
                 query.append(") ").append(values).append(");");
-                
+
                 // Insertar
                 Statement st = conn.createStatement();
                 System.out.println(st.executeUpdate(query.toString()) + " filas han sido insertadas");
@@ -137,37 +137,39 @@ class DatabaseManager {
     }
 
     public void showDescTable(String table) {
+        
+        System.out.println("Descripcion de la tabla: " + table);
+        
         // TO-DO: Show info about tables, keys and foreign keys
         Connection conn = connectDatabase();
-
+        
         try {
             DatabaseMetaData metaData = conn.getMetaData();
-            
-            ResultSet tableInfo = metaData.getTables(null, null, table, null);
-            
-            
-            while(tableInfo.next()){
+
+            ResultSet tableInfo = metaData.getTables(getDbname(), null, table, null);
+
+            while (tableInfo.next()) {
                 System.out.println(tableInfo.getString("TABLE_NAME"));
                 System.out.println(tableInfo.getString("TABLE_TYPE"));
             }
-            
-            ResultSet primaryKeysInfo = metaData.getPrimaryKeys(null, null, table);
-            
-            while(primaryKeysInfo.next()){
+
+            ResultSet primaryKeysInfo = metaData.getPrimaryKeys(getDbname(), null, table);
+
+            while (primaryKeysInfo.next()) {
                 System.out.println(primaryKeysInfo.getString("COLUMN_NAME"));
                 System.out.println(primaryKeysInfo.getString("PK_NAME"));
             }
-            
-            ResultSet foreignKeysInfo = metaData.getImportedKeys(null, null, table);
-            
-            while(foreignKeysInfo.next()){
-            
+
+            ResultSet foreignKeysInfo = metaData.getImportedKeys(getDbname(), null, table);
+
+            while (foreignKeysInfo.next()) {
+
                 System.out.println(foreignKeysInfo.getString("FKTABLE_NAME"));
                 System.out.println(foreignKeysInfo.getString("FKCOLUMN_NAME"));
                 System.out.println(foreignKeysInfo.getString("PKTABLE_NAME"));
                 System.out.println(foreignKeysInfo.getString("PKCOLUMN_NAME"));
             }
-            
+
         } catch (Exception e) {
             System.out.println("Error");
         }
@@ -183,22 +185,28 @@ class DatabaseManager {
 
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# (" + this.user + ") on " + this.server + ":" + this.port + "> " + ConsoleColors.RESET);
             command = keyboard.nextLine();
+            
+            if (command.startsWith("desc table") || (command.startsWith("description table"))){
+                String[] subcommand = command.split(" ");
+                    if (subcommand.length < 2) {
+                        System.out.println(ConsoleColors.RED + "Error: desc table <table_name>" + ConsoleColors.RESET);
+                    } else {
+                        String tableName = subcommand[2]; 
+                        this.showDescTable(tableName);
+                    }
+            }
 
             switch (command) {
-                case "desc table":
-                case "description table":
-                    this.showDescTable("prueba");
-                    break;
 
                 case "sh tables":
                 case "show tables":
                     this.showTables();
                     break;
-                
+
                 case "insert table":
                     this.insertIntoTable("");
                     break;
-                
+
                 case "quit":
                     break;
 
