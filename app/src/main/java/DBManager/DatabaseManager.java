@@ -268,103 +268,149 @@ class DatabaseManager {
 
         }
     }
-    
-    public void exportSql(String tabla, String ruta){
+
+    public void exportSql(String tabla, String ruta) {
         Connection conn = connectDatabase();
-        
-        if(conn == null){
+
+        if (conn == null) {
             System.out.println("Error en la conexión");
             return;
         }
-        
-        try{
-           Statement statement = conn.createStatement();
-           
-           String query = "SELECT * FROM " + tabla;
-           
-           ResultSet result = statement.executeQuery(query);
-           
-           ResultSetMetaData metadata = result.getMetaData();
-           int column_contador = metadata.getColumnCount();
-           
-           StringBuilder sql_datos = new StringBuilder();
-           
-           while(result.next()){
-               sql_datos.append("INSERT INTO ").append(tabla).append(" (");
-               
-               for(int i = 1; i<= column_contador; i++){
-                   String nombre_columna = metadata.getColumnName(i);
-                   sql_datos.append(nombre_columna);
-                   if(i < column_contador){
-                       sql_datos.append(", ");
-                   }
-               }
-               
-               sql_datos.append(") VALUES (");
-               
-               for (int i = 1; i < column_contador; i++) {
-                   String column_valor = result.getString(i);
-                   sql_datos.append("'").append(column_valor).append("'");
-                   if(i < column_contador){
-                       sql_datos.append(", ");
-                   }
-               }
-               
-               sql_datos.append(");").append(System.lineSeparator());
-               
-           }
-           
-           Files.write(Paths.get(ruta), sql_datos.toString().getBytes());
-           
-           System.out.println("Datos de la tabla " + tabla + " exportados exitosamente a " + ruta);
-           
-        }catch(IOException | SQLException e){
+
+        try {
+            Statement statement = conn.createStatement();
+
+            String query = "SELECT * FROM " + tabla;
+
+            ResultSet result = statement.executeQuery(query);
+
+            ResultSetMetaData metadata = result.getMetaData();
+            int column_contador = metadata.getColumnCount();
+
+            StringBuilder sql_datos = new StringBuilder();
+
+            while (result.next()) {
+                sql_datos.append("INSERT INTO ").append(tabla).append(" (");
+
+                for (int i = 1; i <= column_contador; i++) {
+                    String nombre_columna = metadata.getColumnName(i);
+                    sql_datos.append(nombre_columna);
+                    if (i < column_contador) {
+                        sql_datos.append(", ");
+                    }
+                }
+
+                sql_datos.append(") VALUES (");
+
+                for (int i = 1; i < column_contador; i++) {
+                    String column_valor = result.getString(i);
+                    sql_datos.append("'").append(column_valor).append("'");
+                    if (i < column_contador) {
+                        sql_datos.append(", ");
+                    }
+                }
+
+                sql_datos.append(");").append(System.lineSeparator());
+
+            }
+
+            Files.write(Paths.get(ruta), sql_datos.toString().getBytes());
+
+            System.out.println("Datos de la tabla " + tabla + " exportados exitosamente a " + ruta);
+
+        } catch (IOException | SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-    
-    public void exportCsv(String tabla, String ruta){
+
+    public void exportCsv(String tabla, String ruta) {
         Connection conn = connectDatabase();
-        
-        if(conn == null){
+
+        if (conn == null) {
             System.out.println("Error en la conexión");
             return;
         }
-        
-        try{
+
+        try {
             Statement statement = conn.createStatement();
             ResultSet result = statement.executeQuery("SELECT * FROM " + tabla);
             FileWriter writer = new FileWriter(ruta);
-            
+
             ResultSetMetaData metadata = result.getMetaData();
             int column_contador = metadata.getColumnCount();
-            
+
             for (int i = 1; i < column_contador; i++) {
                 String column_nombre = metadata.getColumnName(i);
                 writer.append(column_nombre);
-                if(i < column_contador){
+                if (i < column_contador) {
                     writer.append(",");
                 }
             }
-            
+
             writer.append(System.lineSeparator());
-            
+
             // Escribir datos en la tabla csv
-            while(result.next()){
+            while (result.next()) {
                 for (int i = 1; i < column_contador; i++) {
                     String column_valor = result.getString(i);
                     writer.append(column_valor);
-                    
-                    if(i < column_contador){
+
+                    if (i < column_contador) {
                         writer.append(",");
                     }
                 }
                 writer.append(System.lineSeparator());
             }
             System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como CSV a " + ruta);
-            
-        }catch(IOException | SQLException e){
+
+        } catch (IOException | SQLException e) {
             System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void exportJson(String tabla, String ruta) {
+        Connection conn = connectDatabase();
+
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            List<String> data = new ArrayList<>(); // Cambio el tipo de lista
+
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM " + tabla);
+
+            ResultSetMetaData metadata = result.getMetaData();
+            int column_contador = metadata.getColumnCount();
+
+            while (result.next()) {
+                StringBuilder data_fila = new StringBuilder("{");
+                for (int i = 1; i <= column_contador; i++) { // Cambio el operador en el bucle
+                    String column_name = metadata.getColumnName(i);
+                    String column_valor = result.getString(i);
+                    if (i > 1) {
+                        data_fila.append(",");
+                    }
+                    data_fila.append("\"").append(column_name).append("\":\"").append(column_valor).append("\"");
+                }
+                data_fila.append("}");
+                data.add(data_fila.toString());
+            }
+
+            FileWriter writer = new FileWriter(ruta);
+
+            for (String json_dato : data) {
+                writer.write(json_dato);
+                writer.write(System.lineSeparator());
+            }
+
+            writer.close();
+            System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como JSON a " + ruta);
+
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 
@@ -416,22 +462,28 @@ class DatabaseManager {
                 } else {
                     this.showContent(subcommand[1]);
                 }
-            }else if(command.startsWith("export sql")){
+            } else if (command.startsWith("export sql")) {
                 String[] subcommand = command.split(" ");
                 if (subcommand.length < 4) {
                     System.out.println("Formato incorrecto");
                 } else {
                     this.exportSql(subcommand[2], subcommand[3]);
                 }
-            }else if(command.startsWith("export csv")){
+            } else if (command.startsWith("export csv")) {
                 String[] subcommand = command.split(" ");
                 if (subcommand.length < 4) {
                     System.out.println("Formato incorrecto");
                 } else {
                     this.exportCsv(subcommand[2], subcommand[3]);
                 }
-            } 
-            else {
+            } else if (command.startsWith("export json")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.exportJson(subcommand[2], subcommand[3]);
+                }
+            } else {
                 System.out.println("Comando incorrecto");
             }
 
