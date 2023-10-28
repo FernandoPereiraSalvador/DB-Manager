@@ -56,7 +56,7 @@ public class ServerManager {
             } else if (ip == null && port == null && user == null && pass == null){
                 // Inicializa una instancia de ConnectionManager sin datos.
                 try{
-                    cm = new ConnectionManager(ip, port, user, pass,bd);
+                    cm = new ConnectionManager();
                 }catch(Exception e){
                     System.out.println("Error: " + e.getMessage());
                 }
