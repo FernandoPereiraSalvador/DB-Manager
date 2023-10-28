@@ -245,10 +245,9 @@ class DatabaseManager {
      * @param table El nombre de la tabla de la cual se mostrará la descripción.
      */
     public void showDescTable(String table) {
-
         System.out.println("Descripcion de la tabla: " + table);
 
-        //  Establecer una conexión a la base de datos
+        // Establecer una conexión a la base de datos
         Connection conn = connectDatabase();
 
         try {
@@ -259,33 +258,42 @@ class DatabaseManager {
             ResultSet tableInfo = metaData.getTables(getDbname(), null, table, null);
 
             while (tableInfo.next()) {
-                System.out.println(tableInfo.getString("TABLE_NAME"));
-                System.out.println(tableInfo.getString("TABLE_TYPE"));
+                System.out.println("Nombre de la tabla: " + tableInfo.getString("TABLE_NAME"));
+                System.out.println("Tipo de tabla: " + tableInfo.getString("TABLE_TYPE"));
+            }
+
+            // Obtener información sobre las columnas de la tabla
+            ResultSet columnsInfo = metaData.getColumns(getDbname(), null, table, null);
+
+            System.out.println("Columnas:");
+            while (columnsInfo.next()) {
+                String columnName = columnsInfo.getString("COLUMN_NAME");
+                String columnType = columnsInfo.getString("TYPE_NAME");
+                System.out.println("Nombre de columna: " + columnName + " ( " + columnType + " ) ");
             }
 
             // Obtener información sobre las claves primarias de la tabla
             ResultSet primaryKeysInfo = metaData.getPrimaryKeys(getDbname(), null, table);
 
+            System.out.println("Claves primarias:");
             while (primaryKeysInfo.next()) {
-                System.out.println(primaryKeysInfo.getString("COLUMN_NAME"));
-                System.out.println(primaryKeysInfo.getString("PK_NAME"));
+                System.out.println("Columna: " + primaryKeysInfo.getString("COLUMN_NAME") + " ( " + primaryKeysInfo.getString("PK_NAME") + " ) ");
             }
 
             // Obtener información sobre las claves foráneas relacionadas con la tabla
             ResultSet foreignKeysInfo = metaData.getImportedKeys(getDbname(), null, table);
 
+            System.out.println("Claves foraneas:");
             while (foreignKeysInfo.next()) {
-
-                System.out.println(foreignKeysInfo.getString("FKTABLE_NAME"));
-                System.out.println(foreignKeysInfo.getString("FKCOLUMN_NAME"));
-                System.out.println(foreignKeysInfo.getString("PKTABLE_NAME"));
-                System.out.println(foreignKeysInfo.getString("PKCOLUMN_NAME"));
+                System.out.println("Nombre de tabla foranea: " + foreignKeysInfo.getString("FKTABLE_NAME"));
+                System.out.println("Columna foranea: " + foreignKeysInfo.getString("FKCOLUMN_NAME"));
+                System.out.println("Tabla principal: " + foreignKeysInfo.getString("PKTABLE_NAME"));
+                System.out.println("Columna principal: " + foreignKeysInfo.getString("PKCOLUMN_NAME"));
             }
 
         } catch (Exception e) {
-            System.out.println("Error");
+            System.out.println("Error: " + e.getMessage());
         }
-
     }
 
     /**
@@ -602,6 +610,8 @@ class DatabaseManager {
      */
     public void menu() {
 
+        System.out.println();
+
         tituloMenu(getDbname());
 
         System.out.println("Opciones disponibles:");
@@ -807,23 +817,23 @@ class DatabaseManager {
     public void setDbname(String dbname) {
         this.dbname = dbname;
     }
-    
+
     /**
      * Devuelve el tipo de base de datos
+     *
      * @return Un string con el tipo de base de datos usado
      */
     public String getDb() {
         return db;
     }
-    
+
     /**
      * Establece el tipo de base de datos
+     *
      * @param db Un string con el tipo de base de datos usado
      */
     public void setDb(String db) {
         this.db = db;
     }
-    
-    
 
 }

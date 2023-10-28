@@ -142,13 +142,15 @@ class ConnectionManager {
      * Muestra las opciones disponibles en el menú del shell.
      */
     public void menu() {
-
+        
+        System.out.println();
+        
         tituloMenu("Bases de datos");
 
         System.out.println("Opciones disponibles:");
         System.out.println("1. Mostrar bases de datos: sh db o show databases");
         System.out.println("2. Mostrar informacion de la base de datos: info");
-        System.out.println("3. Cambiar a una base de datos específica: use <database_name>");
+        System.out.println("3. Cambiar a una base de datos especifica: use <database_name>");
         System.out.println("4. Salir: quit");
 
     }

@@ -42,13 +42,26 @@ public class ServerManager {
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# Password: " + ConsoleColors.BLACK);
             pass = keyboard.nextLine();
             System.out.print(ConsoleColors.RESET);
-
+            
+            cm = null;
+            
             if (ip != null && port != null && user != null && pass != null) {
                 // Inicializa una instancia de ConnectionManager con los datos proporcionados.
-                cm = new ConnectionManager(ip, port, user, pass,bd);
-            } else {
+                try{
+                    cm = new ConnectionManager(ip, port, user, pass,bd);
+                }catch(Exception e){
+                    System.out.println("Error: " + e.getMessage());
+                }
+                
+            } else if (ip == null && port == null && user == null && pass == null){
                 // Inicializa una instancia de ConnectionManager sin datos.
-                cm = new ConnectionManager();
+                try{
+                    cm = new ConnectionManager(ip, port, user, pass,bd);
+                }catch(Exception e){
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }else{
+                System.out.println("Por favor, ingrese todos los datos requeridos.");
             }
 
         } while (cm.connectDBMS() == null);
