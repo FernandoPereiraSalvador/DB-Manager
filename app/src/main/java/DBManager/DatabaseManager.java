@@ -3,10 +3,14 @@ package DBManager;
 import static DBManager.Utilidades.leerEnteroC;
 import static DBManager.Utilidades.leerRealC;
 import static DBManager.Utilidades.leerTextoC;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.Scanner;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class DatabaseManager {
 
@@ -156,6 +160,39 @@ class DatabaseManager {
         // - Mostrar el ID generado (si existe)
     }
 
+    public void importSQLFile(String ruta) {
+        Connection conn = connectDatabase();
+
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            List<String> sqlStatements = new ArrayList<>();
+            String sqlContent = new String(Files.readAllBytes(Paths.get(ruta)));
+            String[] statements = sqlContent.split(";");
+
+            for (String statement : statements) {
+                if (!statement.trim().isEmpty()) {
+                    sqlStatements.add(statement);
+                }
+            }
+
+            Statement statement = conn.createStatement();
+            for (String sql : sqlStatements) {
+                statement.addBatch(sql);
+            }
+
+            int[] result = statement.executeBatch();
+
+            System.out.println("Se ejecutaron " + result.length + " sentencias SQL del archivo.");
+
+        } catch (IOException | SQLException e) {
+            System.out.println("Error al importar el archivo SQL: " + e.getMessage());
+        }
+    }
+
     public void showDescTable(String table) {
 
         System.out.println("Descripcion de la tabla: " + table);
@@ -224,6 +261,19 @@ class DatabaseManager {
                 }
             } else if ("show tables".equals(command) || "sh tables".equals(command)) {
                 this.showTables();
+            } else if (command.startsWith("import")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 2) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    String ruta = subcommand[1];
+                    if (ruta.toLowerCase().endsWith(".sql")) {
+                        this.importSQLFile(ruta);
+                    } else {
+                        System.out.println("El archivo proporcionado no es un sql");
+                    }
+                }
+
             } else {
                 System.out.println("Comando incorrecto");
             }
