@@ -267,6 +267,60 @@ class DatabaseManager {
 
         }
     }
+    
+    public void exportSql(String tabla, String ruta){
+        Connection conn = connectDatabase();
+        
+        if(conn == null){
+            System.out.println("Error en la conexión");
+            return;
+        }
+        
+        try{
+           Statement statement = conn.createStatement();
+           
+           String query = "SELECT * FROM " + tabla;
+           
+           ResultSet result = statement.executeQuery(query);
+           
+           ResultSetMetaData metadata = result.getMetaData();
+           int column_contador = metadata.getColumnCount();
+           
+           StringBuilder sql_datos = new StringBuilder();
+           
+           while(result.next()){
+               sql_datos.append("INSERT INTO ").append(tabla).append(" (");
+               
+               for(int i = 1; i<= column_contador; i++){
+                   String nombre_columna = metadata.getColumnName(i);
+                   sql_datos.append(nombre_columna);
+                   if(i < column_contador){
+                       sql_datos.append(", ");
+                   }
+               }
+               
+               sql_datos.append(") VALUES (");
+               
+               for (int i = 1; i < column_contador; i++) {
+                   String column_valor = result.getString(i);
+                   sql_datos.append("'").append(column_valor).append("'");
+                   if(i < column_contador){
+                       sql_datos.append(", ");
+                   }
+               }
+               
+               sql_datos.append(");").append(System.lineSeparator());
+               
+           }
+           
+           Files.write(Paths.get(ruta), sql_datos.toString().getBytes());
+           
+           System.out.println("Datos de la tabla " + tabla + " exportados exitosamente a " + ruta);
+           
+        }catch(IOException | SQLException e){
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 
     public void startShell() {
 
@@ -316,7 +370,15 @@ class DatabaseManager {
                 } else {
                     this.showContent(subcommand[1]);
                 }
-            } else {
+            }else if(command.startsWith("exportsql")){
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 3) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.exportSql(subcommand[1], subcommand[2]);
+                }
+            } 
+            else {
                 System.out.println("Comando incorrecto");
             }
 
