@@ -131,7 +131,15 @@ class ConnectionManager {
                         // Creem un objecte de tipus databaseManager per connectar-nos a
                         // la base de dades i iniciar una shell de manipulació de BD..
                             
-                            DatabaseManager dbManager = new DatabaseManager(this.server,this.port,this.user,this.pass,subcommand[1]);
+                            DatabaseManager dbManager = null;
+                            
+                            if(this.server != null && this.port != null && this.user != null && this.pass != null && subcommand[1] != null){
+                                dbManager = new DatabaseManager(this.server,this.port,this.user,this.pass,subcommand[1]);
+                            }else{
+                                dbManager = new DatabaseManager();
+                            }
+                            
+                            
                             dbManager.connectDatabase();
                             dbManager.startShell();
 
