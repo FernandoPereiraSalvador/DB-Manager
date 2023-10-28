@@ -6,7 +6,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class ConnectionManager {
+public class ConnectionManager {
 
     // Atributos de la clase
     String server;

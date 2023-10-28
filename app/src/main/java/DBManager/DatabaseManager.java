@@ -24,7 +24,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.DOMException;
 
-class DatabaseManager {
+public class DatabaseManager {
 
     String server;
     String port;
