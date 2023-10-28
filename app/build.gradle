@@ -32,10 +32,15 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'DBManager.App'
+    mainClass = 'DBManager.ServerManager'
 }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    standardOutput = System.out
 }
