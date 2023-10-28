@@ -233,6 +233,41 @@ class DatabaseManager {
 
     }
 
+    public void showContent(String nombre_tabla) {
+        Connection conn = connectDatabase();
+
+        if (conn == null) {
+            System.out.println("Error al conectarse a la base de datos");
+            return;
+        }
+
+        try {
+            Statement statement = conn.createStatement();
+
+            String query = "SELECT * FROM " + nombre_tabla;
+
+            ResultSet result = statement.executeQuery(query);
+
+            ResultSetMetaData metadata = result.getMetaData();
+            int columnCount = metadata.getColumnCount();
+
+            while (result.next()) {
+                for (int i = 1; i <= columnCount; i++) {
+                    String columnName = metadata.getColumnName(i);
+                    String columnValue = result.getString(i);
+                    System.out.print(columnName + ": " + columnValue);
+                    if (i < columnCount) {
+                        System.out.print(", ");
+                    }
+                }
+                System.out.println();
+            }
+            result.close();
+        } catch (Exception e) {
+
+        }
+    }
+
     public void startShell() {
 
         Scanner keyboard = new Scanner(System.in);
@@ -274,6 +309,13 @@ class DatabaseManager {
                     }
                 }
 
+            } else if (command.startsWith("show")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 2) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.showContent(subcommand[1]);
+                }
             } else {
                 System.out.println("Comando incorrecto");
             }
