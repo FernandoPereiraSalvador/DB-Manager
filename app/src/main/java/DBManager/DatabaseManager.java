@@ -31,6 +31,7 @@ class DatabaseManager {
     String user;
     String pass;
     String dbname;
+    String db;
 
     DatabaseManager() {
         this.server = "default_server";
@@ -38,14 +39,16 @@ class DatabaseManager {
         this.user = "default_user";
         this.pass = "default_pass";
         this.dbname = "default_dbname";
+        this.db = "mariadb";
     }
 
-    DatabaseManager(String server, String port, String user, String pass, String dbname) {
+    DatabaseManager(String server, String port, String user, String pass, String dbname, String db) {
         this.server = server;
         this.port = port;
         this.user = user;
         this.pass = pass;
         this.dbname = dbname;
+        this.db = db;
 
     }
 
@@ -67,7 +70,14 @@ class DatabaseManager {
 
         try {
             // Carga el controlador JDBC de MySQL
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            if ("mysql".equals(getDb())) {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            } else if ("mariadb".equals(getDb())) {
+                Class.forName("org.mariadb.jdbc.Driver");
+            } else {
+                System.out.println("Error: La base de datos especificada no es compatible o no se reconoce. Use 'mysql' o 'mariadb'.");
+                return null;
+            }
 
             // Intenta establecer una conexión a la base de datos
             conn = DriverManager.getConnection(connectionUrl, getUser(), getPass());
@@ -586,14 +596,14 @@ class DatabaseManager {
             System.out.println("Error: " + e.getMessage());
         }
     }
-    
+
     /**
      * Imprime las opciones del menú del shell.
      */
     public void menu() {
-        
+
         tituloMenu(getDbname());
-        
+
         System.out.println("Opciones disponibles:");
         System.out.println("1. Describir una tabla: desc table <table_name>");
         System.out.println("2. Insertar en una tabla: insert table <table_name>");
@@ -616,9 +626,9 @@ class DatabaseManager {
         String command;
 
         do {
-            
+
             menu();
-            
+
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# (" + this.user + ") on " + this.server + ":" + this.port + "> " + ConsoleColors.RESET);
             command = keyboard.nextLine();
 
@@ -697,6 +707,9 @@ class DatabaseManager {
                 } else {
                     this.exportXml(subcommand[2], subcommand[3]);
                 }
+            } // Se sale del shell de la base de datos
+            else if (command.startsWith("quit")) {
+
             } // Se ha insertado un comando incorrecto
             else {
                 System.out.println("Comando incorrecto");
@@ -794,5 +807,23 @@ class DatabaseManager {
     public void setDbname(String dbname) {
         this.dbname = dbname;
     }
+    
+    /**
+     * Devuelve el tipo de base de datos
+     * @return Un string con el tipo de base de datos usado
+     */
+    public String getDb() {
+        return db;
+    }
+    
+    /**
+     * Establece el tipo de base de datos
+     * @param db Un string con el tipo de base de datos usado
+     */
+    public void setDb(String db) {
+        this.db = db;
+    }
+    
+    
 
 }

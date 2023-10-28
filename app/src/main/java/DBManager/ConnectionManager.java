@@ -13,6 +13,7 @@ class ConnectionManager {
     String port;
     String user;
     String pass;
+    String db;
 
     /**
      * Constructor predeterminado de `ConnectionManager`. Inicializa los atributos de conexión con valores por defecto.
@@ -22,6 +23,7 @@ class ConnectionManager {
         this.port = "default_port";
         this.user = "default_user";
         this.pass = "default_pass";
+        this.db = "mariadb";
 
     }
 
@@ -33,11 +35,12 @@ class ConnectionManager {
      * @param user Nombre de usuario para la conexión.
      * @param pass Contraseña para la conexión.
      */
-    ConnectionManager(String server, String port, String user, String pass) {
+    ConnectionManager(String server, String port, String user, String pass,String db) {
         this.server = server;
         this.port = port;
         this.user = user;
         this.pass = pass;
+        this.db = db;
     }
 
     /**
@@ -54,7 +57,14 @@ class ConnectionManager {
             String url_connection = "jdbc:mysql://" + server + ":" + port;
 
             // Carga el controlador de la base de datos MySQL.
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            if("mysql".equals(getDb())){
+               Class.forName("com.mysql.cj.jdbc.Driver"); 
+            }else if("mariadb".equals(getDb())){
+                Class.forName("org.mariadb.jdbc.Driver");
+            }else{
+                System.out.println("Error: La base de datos especificada no es compatible o no se reconoce. Use 'mysql' o 'mariadb'.");
+                return null;
+            }         
 
             // Establece la conexión utilizando la URL, nombre de usuario y contraseña.
             connection = DriverManager.getConnection(url_connection, user, pass);
@@ -181,7 +191,7 @@ class ConnectionManager {
                             DatabaseManager dbManager = null;
 
                             if (this.server != null && this.port != null && this.user != null && this.pass != null && subcommand[1] != null) {
-                                dbManager = new DatabaseManager(this.server, this.port, this.user, this.pass, subcommand[1]);
+                                dbManager = new DatabaseManager(this.server, this.port, this.user, this.pass, subcommand[1], this.db);
                             } else {
                                 dbManager = new DatabaseManager();
                             }
@@ -199,5 +209,47 @@ class ConnectionManager {
         } while (!command.equals("quit"));
 
     }
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+    public String getDb() {
+        return db;
+    }
+
+    public void setDb(String db) {
+        this.db = db;
+    }
+    
+    
 
 }

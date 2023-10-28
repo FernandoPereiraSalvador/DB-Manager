@@ -18,9 +18,13 @@ public class ServerManager {
 
         Scanner keyboard = new Scanner(System.in);
 
-        String user, pass, ip, port;
+        String user, pass, ip, port, bd;
 
         do {
+            
+            // Solicita la base de datos a utilizar.
+            System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# Base de datos (mysql / mariadb): " + ConsoleColors.BLACK);
+            bd = keyboard.nextLine();
             
             // Solicita la dirección IP del servidor.
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# Server: " + ConsoleColors.RESET);
@@ -41,7 +45,7 @@ public class ServerManager {
 
             if (ip != null && port != null && user != null && pass != null) {
                 // Inicializa una instancia de ConnectionManager con los datos proporcionados.
-                cm = new ConnectionManager(ip, port, user, pass);
+                cm = new ConnectionManager(ip, port, user, pass,bd);
             } else {
                 // Inicializa una instancia de ConnectionManager sin datos.
                 cm = new ConnectionManager();

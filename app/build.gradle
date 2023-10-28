@@ -25,6 +25,9 @@ dependencies {
     
     // Añade el conector de mysql
     implementation 'mysql:mysql-connector-java:8.0.26'
+    
+    // Añade el conector de mariadb
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
 }
 
 application {
