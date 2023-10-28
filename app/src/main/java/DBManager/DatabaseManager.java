@@ -9,9 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.Scanner;
-
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 class DatabaseManager {
 
@@ -410,7 +413,57 @@ class DatabaseManager {
             System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como JSON a " + ruta);
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Error: " + e);
+        }
+    }
+
+    public void exportXml(String tabla, String ruta) {
+        Connection conn = connectDatabase();
+
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = (Document) dBuilder.newDocument();
+            Element rootElement = doc.createElement(tabla);
+            doc.appendChild(rootElement);
+
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM " + tabla);
+
+            ResultSetMetaData metadata = result.getMetaData();
+            int column_contador = metadata.getColumnCount();
+
+            while (result.next()) {
+                Element rowElement = doc.createElement("row");
+                rootElement.appendChild(rowElement);
+
+                for (int i = 1; i <= column_contador; i++) {
+                    String column_name = metadata.getColumnName(i);
+                    String column_value = result.getString(i);
+
+                    Element columnElement = doc.createElement(column_name);
+                    columnElement.appendChild(doc.createTextNode(column_value));
+                    rowElement.appendChild(columnElement);
+                }
+            }
+
+            FileWriter writer = new FileWriter(ruta);
+            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
+            javax.xml.transform.Transformer transformer = tf.newTransformer();
+            javax.xml.transform.dom.DOMSource source = new javax.xml.transform.dom.DOMSource(doc);
+            javax.xml.transform.stream.StreamResult resultFile = new javax.xml.transform.stream.StreamResult(writer);
+            transformer.transform(source, resultFile);
+            writer.close();
+
+            System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como XML a " + ruta);
+
+        } catch (Exception e) {
+
         }
     }
 
@@ -482,6 +535,13 @@ class DatabaseManager {
                     System.out.println("Formato incorrecto");
                 } else {
                     this.exportJson(subcommand[2], subcommand[3]);
+                }
+            } else if (command.startsWith("export xml")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.exportXml(subcommand[2], subcommand[3]);
                 }
             } else {
                 System.out.println("Comando incorrecto");
