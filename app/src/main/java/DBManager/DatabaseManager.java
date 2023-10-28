@@ -3,6 +3,7 @@ package DBManager;
 import static DBManager.Utilidades.leerEnteroC;
 import static DBManager.Utilidades.leerRealC;
 import static DBManager.Utilidades.leerTextoC;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -321,6 +322,51 @@ class DatabaseManager {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    
+    public void exportCsv(String tabla, String ruta){
+        Connection conn = connectDatabase();
+        
+        if(conn == null){
+            System.out.println("Error en la conexión");
+            return;
+        }
+        
+        try{
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM " + tabla);
+            FileWriter writer = new FileWriter(ruta);
+            
+            ResultSetMetaData metadata = result.getMetaData();
+            int column_contador = metadata.getColumnCount();
+            
+            for (int i = 1; i < column_contador; i++) {
+                String column_nombre = metadata.getColumnName(i);
+                writer.append(column_nombre);
+                if(i < column_contador){
+                    writer.append(",");
+                }
+            }
+            
+            writer.append(System.lineSeparator());
+            
+            // Escribir datos en la tabla csv
+            while(result.next()){
+                for (int i = 1; i < column_contador; i++) {
+                    String column_valor = result.getString(i);
+                    writer.append(column_valor);
+                    
+                    if(i < column_contador){
+                        writer.append(",");
+                    }
+                }
+                writer.append(System.lineSeparator());
+            }
+            System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como CSV a " + ruta);
+            
+        }catch(IOException | SQLException e){
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 
     public void startShell() {
 
@@ -370,12 +416,19 @@ class DatabaseManager {
                 } else {
                     this.showContent(subcommand[1]);
                 }
-            }else if(command.startsWith("exportsql")){
+            }else if(command.startsWith("export sql")){
                 String[] subcommand = command.split(" ");
-                if (subcommand.length < 3) {
+                if (subcommand.length < 4) {
                     System.out.println("Formato incorrecto");
                 } else {
-                    this.exportSql(subcommand[1], subcommand[2]);
+                    this.exportSql(subcommand[2], subcommand[3]);
+                }
+            }else if(command.startsWith("export csv")){
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.exportCsv(subcommand[2], subcommand[3]);
                 }
             } 
             else {
