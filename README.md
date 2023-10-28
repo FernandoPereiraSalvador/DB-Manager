@@ -27,6 +27,10 @@ Database Manager es una aplicación de gestión de bases de datos que te permite i
 - Java 8 o superior.
 - Acceso a una base de datos MySQL o MariaDB.
 
+## Documentacion
+
+Se puede encontrar la documentacion del proyecto en formato html dentro de la carpeta docs/html ejecutando el archivo index.html
+
 ## Imagenes
 
 ![Imagen 1](./imagenes_readme/1.png)
