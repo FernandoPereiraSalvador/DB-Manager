@@ -28,6 +28,9 @@ dependencies {
     
     // Añade el conector de mariadb
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
+    
+    implementation group: 'org.json', name: 'json', version: '20210307'
+    
 }
 
 application {

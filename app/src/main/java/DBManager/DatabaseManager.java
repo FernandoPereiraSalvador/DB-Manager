@@ -4,8 +4,12 @@ import static DBManager.Utilidades.leerEnteroC;
 import static DBManager.Utilidades.leerRealC;
 import static DBManager.Utilidades.leerTextoC;
 import static DBManager.Utilidades.tituloMenu;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
@@ -13,6 +17,7 @@ import java.util.Scanner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +28,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.DOMException;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.w3c.dom.NodeList;
 
 public class DatabaseManager {
 
@@ -441,7 +449,7 @@ public class DatabaseManager {
             int column_contador = metadata.getColumnCount();
 
             // Escribir encabezados de columnas en el archivo CSV
-            for (int i = 1; i < column_contador; i++) {
+            for (int i = 1; i < column_contador + 1; i++) {
                 String column_nombre = metadata.getColumnName(i);
                 writer.append(column_nombre);
                 if (i < column_contador) {
@@ -453,7 +461,7 @@ public class DatabaseManager {
 
             // Escribir datos en el archivo CSV
             while (result.next()) {
-                for (int i = 1; i < column_contador; i++) {
+                for (int i = 1; i < column_contador + 1; i++) {
                     String column_valor = result.getString(i);
                     writer.append(column_valor);
 
@@ -493,6 +501,11 @@ public class DatabaseManager {
             // Crear una lista para almacenar los datos en formato JSON
             List<String> data = new ArrayList<>(); // Cambio el tipo de lista
 
+            // Crear un FileWriter para escribir en el archivo JSON
+            FileWriter writer = new FileWriter(ruta);
+
+            writer.write("[");
+
             // Crear una declaración SQL
             Statement statement = conn.createStatement();
             ResultSet result = statement.executeQuery("SELECT * FROM " + tabla);
@@ -516,14 +529,15 @@ public class DatabaseManager {
                 data.add(data_fila.toString());
             }
 
-            // Crear un FileWriter para escribir en el archivo JSON
-            FileWriter writer = new FileWriter(ruta);
-
             // Escribir cada objeto JSON en una línea separada en el archivo
-            for (String json_dato : data) {
-                writer.write(json_dato);
-                writer.write(System.lineSeparator());
+            for (int i = 0; i < data.size(); i++) {
+                writer.write(data.get(i));
+                if (i < data.size() - 1) {
+                    writer.write(",");
+                }
             }
+
+            writer.write("]");
 
             // Cerrar el archivo y mostrar un mensaje de éxito
             writer.close();
@@ -532,6 +546,7 @@ public class DatabaseManager {
         } catch (IOException | SQLException e) {
             System.out.println("Error: " + e);
         }
+
     }
 
     /**
@@ -587,7 +602,7 @@ public class DatabaseManager {
             }
 
             // Crear un FileWriter para escribir en el archivo XML
-            FileWriter writer = new FileWriter(ruta);
+            FileWriter writer = new FileWriter(ruta, StandardCharsets.UTF_8);
 
             // Configurar un Transformer para escribir el documento XML en el archivo
             TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
@@ -601,6 +616,183 @@ public class DatabaseManager {
             System.out.println("Datos de la tabla " + tabla + " exportados exitosamente como XML a " + ruta);
 
         } catch (IOException | SQLException | ParserConfigurationException | TransformerException | DOMException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void importCsv(String tabla, String ruta) {
+        // Conectar a la base de datos
+        Connection conn = connectDatabase();
+
+        // Verificar la conexión a la base de datos
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            // Crear una declaración SQL para insertar datos
+            String insertQuery = "INSERT INTO " + tabla + " VALUES (";
+            for (int i = 0; i < getColumnCount(tabla); i++) {
+                insertQuery += "?,";
+            }
+            insertQuery = insertQuery.substring(0, insertQuery.length() - 1); // Eliminar la última coma
+            insertQuery += ")";
+            PreparedStatement preparedStatement = conn.prepareStatement(insertQuery);
+
+            // Leer el archivo CSV
+            BufferedReader reader = new BufferedReader(new FileReader(ruta));
+            String line;
+            boolean skipFirstLine = true; // Variable para saltarse la primera línea
+            while ((line = reader.readLine()) != null) {
+                if (skipFirstLine) {
+                    skipFirstLine = false;
+                    continue; // Saltar la primera línea
+                }
+                String[] data = line.split(",");
+                for (int i = 0; i < data.length; i++) {
+                    preparedStatement.setString(i + 1, data[i]);
+                }
+                preparedStatement.executeUpdate();
+            }
+
+            // Cerrar el archivo y la conexión a la base de datos
+            reader.close();
+            preparedStatement.close();
+            conn.close();
+
+            System.out.println("Datos del archivo CSV importados exitosamente a la tabla " + tabla);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void importJson(String tabla, String ruta) {
+        // Conectar a la base de datos
+        Connection conn = connectDatabase();
+
+        // Verificar la conexión a la base de datos
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            // Leer el archivo JSON
+            FileReader fileReader = new FileReader(ruta);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            StringBuilder jsonStringBuilder = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                jsonStringBuilder.append(line);
+            }
+            bufferedReader.close();
+
+            // Parsear el JSON
+            JSONArray jsonArray = new JSONArray(jsonStringBuilder.toString());
+
+            // Preparar la declaración SQL para la inserción
+            String insertQuery = "INSERT INTO " + tabla + " (";
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                Iterator<String> keys = jsonObject.keys();
+                while (keys.hasNext()) {
+                    String columnName = keys.next();
+                    insertQuery += columnName;
+                    if (keys.hasNext()) {
+                        insertQuery += ",";
+                    }
+                }
+                if (i == 0) {
+                    insertQuery += ") VALUES (";
+                } else if (i < jsonArray.length() - 1) {
+                    insertQuery += "), (";
+                } else {
+                    insertQuery += ");";
+                }
+            }
+
+            // Ejecutar la inserción
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(insertQuery);
+
+            // Mostrar un mensaje de éxito
+            System.out.println("Datos importados exitosamente desde " + ruta + " a la tabla " + tabla);
+        } catch (IOException | SQLException e) {
+            System.out.println("Error: " + e);
+        }
+    }
+
+    private int getColumnCount(String tabla) throws SQLException {
+        // Esta función obtiene el número de columnas en la tabla
+        Connection conn = connectDatabase();
+        String query = "SELECT * FROM " + tabla;
+        PreparedStatement preparedStatement = conn.prepareStatement(query);
+        return preparedStatement.getMetaData().getColumnCount();
+    }
+
+    public void importXml(String tabla, String ruta) {
+        // Conectar a la base de datos
+        Connection conn = connectDatabase();
+
+        // Verificar la conexión a la base de datos
+        if (conn == null) {
+            System.out.println("Error en la conexión");
+            return;
+        }
+
+        try {
+            // Crear un objeto DocumentBuilderFactory para trabajar con XML
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            // Parsear el archivo XML
+            File xmlFile = new File(ruta);
+            Document doc = dBuilder.parse(xmlFile);
+
+            // Obtener la raíz del documento XML
+            Element rootElement = doc.getDocumentElement();
+
+            // Obtener la lista de elementos "row" que representan filas de datos
+            NodeList rowElements = rootElement.getElementsByTagName("row");
+
+            // Crear una declaración SQL para la inserción de datos
+            Statement statement = conn.createStatement();
+
+            for (int i = 0; i < rowElements.getLength(); i++) {
+                Element rowElement = (Element) rowElements.item(i);
+
+                // Crear una declaración SQL para la inserción de datos
+                String insertQuery = "INSERT INTO " + tabla + " (";
+                NodeList columnElements = rowElement.getChildNodes();
+                for (int j = 0; j < columnElements.getLength(); j++) {
+                    Element columnElement = (Element) columnElements.item(j);
+                    String columnName = columnElement.getNodeName();
+                    insertQuery += columnName;
+                    if (j < columnElements.getLength() - 1) {
+                        insertQuery += ",";
+                    }
+                }
+                insertQuery += ") VALUES (";
+
+                for (int j = 0; j < columnElements.getLength(); j++) {
+                    Element columnElement = (Element) columnElements.item(j);
+                    String columnValue = columnElement.getTextContent();
+                    insertQuery += "'" + columnValue + "'";
+                    if (j < columnElements.getLength() - 1) {
+                        insertQuery += ",";
+                    }
+                }
+                insertQuery += ");";
+
+                // Ejecutar la inserción de datos
+                statement.executeUpdate(insertQuery);
+            }
+
+            // Mostrar un mensaje de éxito
+            System.out.println("Datos importados exitosamente desde " + ruta + " a la tabla " + tabla);
+        } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
@@ -663,6 +855,27 @@ public class DatabaseManager {
             } // Mostrar tablas
             else if ("show tables".equals(command) || "sh tables".equals(command)) {
                 this.showTables();
+            } else if (command.startsWith("import csv")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.importCsv(subcommand[2], subcommand[3]);
+                }
+            } else if (command.startsWith("import xml")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.importXml(subcommand[2], subcommand[3]);
+                }
+            } else if (command.startsWith("import json")) {
+                String[] subcommand = command.split(" ");
+                if (subcommand.length < 4) {
+                    System.out.println("Formato incorrecto");
+                } else {
+                    this.importJson(subcommand[2], subcommand[3]);
+                }
             } // Importar un sql y ejecutarlo
             else if (command.startsWith("import")) {
                 String[] subcommand = command.split(" ");
