@@ -1,6 +1,6 @@
 package DBManager;
 
-import static DBManager.Utilidades.tituloMenu;
+import static DBManager.Utilities.printMenuTitle;
 import java.sql.*;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 public class ConnectionManager {
 
-    // Atributos de la clase
     String server;
     String port;
     String user;
@@ -16,7 +15,8 @@ public class ConnectionManager {
     String db;
 
     /**
-     * Constructor predeterminado de `ConnectionManager`. Inicializa los atributos de conexión con valores por defecto.
+     * Default constructor for `ConnectionManager`. Initializes connection
+     * attributes with default values.
      */
     ConnectionManager() {
         this.server = "default_server";
@@ -28,14 +28,16 @@ public class ConnectionManager {
     }
 
     /**
-     * Constructor parametrizado de `ConnectionManager`. Permite establecer los valores de los atributos de conexión al crear una instancia de la clase.
+     * Parameterized constructor for `ConnectionManager`. Allows you to set the
+     * values of the connection attributes when creating an instance of the
+     * class.
      *
-     * @param server Dirección del servidor.
-     * @param port Puerto de la base de datos.
-     * @param user Nombre de usuario para la conexión.
-     * @param pass Contraseña para la conexión.
+     * @param server Address of the server.
+     * @param port Database port.
+     * @param user Username for the connection.
+     * @param pass Password for the connection.
      */
-    ConnectionManager(String server, String port, String user, String pass,String db) {
+    ConnectionManager(String server, String port, String user, String pass, String db) {
         this.server = server;
         this.port = port;
         this.user = user;
@@ -44,32 +46,34 @@ public class ConnectionManager {
     }
 
     /**
-     * Establece una conexión con el sistema de gestión de bases de datos (DBMS).
-     *
-     * @return Una instancia de la clase Connection que representa la conexión exitosa con el DBMS. Devuelve null si la conexión no se pudo establecer.
-     */
+      * Establishes a connection with the database management system
+      * (DBMS).
+      *
+      * @return An instance of the Connection class that represents the connection
+      * successful with the DBMS. Returns null if the connection could not be established.
+      */
     public Connection connectDBMS() {
 
         Connection connection = null;
 
         try {
-            // Construye la URL de conexión utilizando la dirección del servidor y el puerto.
+            // Construct the connection URL using the server address and port.
             String url_connection = "jdbc:mysql://" + server + ":" + port;
 
-            // Carga el controlador de la base de datos MySQL.
-            if("mysql".equals(getDb())){
-               Class.forName("com.mysql.cj.jdbc.Driver"); 
-            }else if("mariadb".equals(getDb())){
+            // Load the MySQL database driver.
+            if ("mysql".equals(getDb())) {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            } else if ("mariadb".equals(getDb())) {
                 Class.forName("org.mariadb.jdbc.Driver");
-            }else{
+            } else {
                 System.out.println("Error: La base de datos especificada no es compatible o no se reconoce. Use 'mysql' o 'mariadb'.");
                 return null;
-            }         
+            }
 
-            // Establece la conexión utilizando la URL, nombre de usuario y contraseña.
+            // Establishes the connection using the URL, username and password.
             connection = DriverManager.getConnection(url_connection, user, pass);
 
-            // Imprime un mensaje de éxito si la conexión se estableció con éxito.
+            // Print a success message if the connection is established successfully.
             System.out.println("Conexion establecida con exito.");
         } catch (SQLException e) {
             System.err.println("Error durante la conexion: " + e.getMessage());
@@ -82,20 +86,23 @@ public class ConnectionManager {
     }
 
     /**
-     * Muestra información relevante sobre la base de datos y el controlador JDBC utilizados en la conexión. Esta información incluye el nombre y la versión del producto de la base de datos, así como el nombre y la versión del controlador JDBC.
+     * Displays relevant information about the database and the controller
+      * JDBC used in the connection. This information includes the name and
+      * database product version, as well as name and version
+      * from the JDBC driver.
      */
     public void showInfo() {
 
-        // Establece una conexión.
+        // Establish a connection.
         Connection conn = connectDBMS();
 
         if (conn != null) {
 
             try {
-                // Obtiene un objeto DatabaseMetaData para acceder a metadatos de la base de datos.
+                // Gets a DatabaseMetaData object to access database metadata.
                 DatabaseMetaData metaData = conn.getMetaData();
 
-                // Muestra los datos
+                // Display the data
                 System.out.println("Database product name: " + metaData.getDatabaseProductName());
                 System.out.println("Database product version: " + metaData.getDatabaseProductVersion());
                 System.out.println("Driver name: " + metaData.getDriverName());
@@ -110,22 +117,24 @@ public class ConnectionManager {
     }
 
     /**
-     * Muestra una lista de las bases de datos disponibles en el servidor de la base de datos. Este método se conecta al servidor y utiliza metadatos para recuperar y mostrar los nombres de las bases de datos.
-     */
+      * Displays a list of databases available on the server
+      * database. This method connects to the server and uses metadata
+      * to retrieve and display database names.
+      */
     public void showDatabases() {
-        // Establece una conexión con la base de datos.
+        // Establishes a connection to the database.
         Connection conn = connectDBMS();
 
         if (conn != null) {
 
             try {
-                // Obtiene un objeto DatabaseMetaData para acceder a metadatos de la base de datos.
+                // Gets a DatabaseMetaData object to access database metadata.
                 DatabaseMetaData metaData = conn.getMetaData();
 
-                // Recupera un conjunto de resultados que contiene los nombres de las bases de datos.
+                // Retrieves a result set containing the database names.
                 ResultSet bases_datos = metaData.getCatalogs();
 
-                // Itera a través de los resultados y muestra los nombres de las bases de datos.
+                // Iterates through the results and displays the database names.
                 while (bases_datos.next()) {
                     System.out.println(bases_datos.getString("TABLE_CAT"));
                 }
@@ -134,29 +143,33 @@ public class ConnectionManager {
             }
 
         } else {
-            System.out.println("Error con la conexión");
+            System.out.println("Error con la conexiï¿½n");
         }
     }
 
     /**
-     * Muestra las opciones disponibles en el menú del shell.
+     * Shows the options available in the shell menu.
      */
     public void menu() {
-        
-        System.out.println();
-        
-        tituloMenu("Bases de datos");
 
-        System.out.println("Opciones disponibles:");
-        System.out.println("1. Mostrar bases de datos: sh db o show databases");
-        System.out.println("2. Mostrar informacion de la base de datos: info");
-        System.out.println("3. Cambiar a una base de datos especifica: use <database_name>");
-        System.out.println("4. Salir: quit");
+        System.out.println();
+
+        printMenuTitle("Databases");
+
+        System.out.println("Available options:");
+        System.out.println("1. Show databases: sh db or show databases");
+        System.out.println("2. Show database information: info");
+        System.out.println("3. Switch to a specific database: use <database_name>");
+        System.out.println("4. Exit: quit");
 
     }
 
     /**
-     * Inicia un shell interactivo que permite al usuario ingresar comandos relacionados con la base de datos. Este método recoge los comandos del usuario, procesa las solicitudes y realiza acciones correspondientes, como mostrar bases de datos, información del servidor, o cambiar a una base de datos específica.
+     * Starts an interactive shell that allows the user to enter commands
+      * database related. This method collects the commands of the
+      * user, processes requests and performs corresponding actions,
+      * how to display databases, server information, or switch to one
+      * specific database.
      */
     public void startShell() {
 
@@ -164,31 +177,31 @@ public class ConnectionManager {
         String command;
 
         do {
-            
+
             menu();
 
             System.out.print(ConsoleColors.GREEN_BOLD_BRIGHT + "# (" + this.user + ") on " + this.server + ":" + this.port + "> " + ConsoleColors.RESET);
             command = keyboard.nextLine();
 
             switch (command) {
-                // Muestra las bases de datos existentes
+                // Show existing databases
                 case "sh db":
                 case "show databases":
                     this.showDatabases();
                     break;
 
-                // Muestra información sobre la base de datos
+                // Shows information about the database
                 case "info":
                     this.showInfo();
                     break;
 
-                // Sale del shell
+                // Exit the shell
                 case "quit":
                     break;
                 default:
                     String[] subcommand = command.split(" ");
                     switch (subcommand[0]) {
-                        // Entra en el shell de una base de datos en concreto
+                        // Enter the shell of a specific database
                         case "use":
                             DatabaseManager dbManager = null;
 
@@ -201,7 +214,7 @@ public class ConnectionManager {
                             dbManager.connectDatabase();
                             dbManager.startShell();
 
-                        // Opción desconocida
+                        // Unknown option
                         default:
                             System.out.println(ConsoleColors.RED + "Unknown option" + ConsoleColors.RESET);
                             break;
@@ -251,7 +264,5 @@ public class ConnectionManager {
     public void setDb(String db) {
         this.db = db;
     }
-    
-    
 
 }
