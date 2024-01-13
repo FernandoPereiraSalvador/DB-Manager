@@ -26,6 +26,12 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.json/json
     implementation 'org.json:json:20210307'
+    
+
+
+// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+implementation 'mysql:mysql-connector-java:8.0.33'
+
 
 }
 
