@@ -1,38 +1,30 @@
-# Database Manager
+<div align="center">
+  <h1>Database Manager</h1>
+</div>
 
-Database Manager es una aplicación de gestión de bases de datos que te permite interactuar con bases de datos MySQL o MariaDB de una manera sencilla y efectiva. Con esta herramienta, puedes realizar diversas operaciones en tus bases de datos, incluyendo:
+# Summary
 
-- Visualizar las bases de datos disponibles.
-- Explorar tablas y ver su estructura.
-- Insertar datos en las tablas.
-- Importar scripts SQL para ejecutar en la base de datos.
-- Exportar datos en formatos populares como CSV, JSON, XML y SQL.
+This Java-based Database Manager provides a versatile set of functionalities for interacting with a database. The program allows you to seamlessly perform operations such as describing tables, inserting records, displaying tables, and importing/exporting data in various formats. Whether you need to visualize your database schema, import data from CSV, JSON, XML, or export to SQL, CSV, JSON, or XML, this manager has got you covered.
 
-## Caracteristicas principales
+# Key Features:
 
-- **Interfaz de linea de comandos amigable:** La aplicaciónn presenta una interfaz de li­nia de comandos intuitiva que facilita la gestión de bases de datos.
+Interactive Shell: Execute commands conveniently through an interactive shell.
+Table Description: Obtain detailed information about the structure of your database tables.
+Data Import/Export: Import data from SQL, CSV, JSON, and XML files, or export your database content to SQL, CSV, JSON, or XML.
+User-Friendly Menu: A menu-driven interface makes navigation and command execution straightforward.
 
-- **Soporte para MySQL y MariaDB:** Puedes conectarte tanto a bases de datos MySQL como a bases de datos MariaDB.
+# Usage Examples:
 
-- **Exploración de bases de datos y tablas:** Obten información detallada sobre las bases de datos y tablas disponibles.
+- desc table <table_name>: Describe the structure of a specific table.
+- insert table <table_name>: Manually insert records into a table.
+- show tables: Display a list of available tables.
+- import <file_path.sql>: Import an SQL file and execute its commands.
+- show <table_name>: View the content of a specific table.
+- export sql <table_name> <output_file.sql>: Export table content to an SQL file.
+- export csv <table_name> <output_file.csv>: Export table content to a CSV file.
+- export json <table_name> <output_file.json>: Export table content to a JSON file.
+- export xml <table_name> <output_file.xml>: Export table content to an XML file.
+- quit: Exit the database manager.
 
-- **Inserción de datos:** Agrega nuevos datos a tus tablas de manera eficiente.
+Explore the full potential of your database with this intuitive and feature-rich Database Manager.
 
-- **Importación de SQL:** Carga y ejecuta scripts SQL en tu base de datos.
-
-- **Exportación de datos:** Guarda tus datos en formatos comunes como CSV, JSON, XML y SQL.
-
-## Requisitos
-
-- Java 8 o superior.
-- Acceso a una base de datos MySQL o MariaDB.
-
-## Documentacion
-
-Se puede encontrar la documentacion del proyecto en formato html dentro de la carpeta docs/html ejecutando el archivo index.html
-
-## Imagenes
-
-![Imagen 1](./imagenes_readme/1.png)
-![Imagen 2](./imagenes_readme/2.png)
-![Imagen 3](./imagenes_readme/3.png)
