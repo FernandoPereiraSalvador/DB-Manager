@@ -1,5 +1,6 @@
 <div align="center">
   <h1>Database Manager</h1>
+  <img src="https://imgur.com/ZVJ5OYc.png" alt="Error" width="530" height="210">
 </div>
 
 # Summary
